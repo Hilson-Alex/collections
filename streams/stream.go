@@ -8,10 +8,8 @@ type wrapFunc[T any] func([]T) interface{}
 
 type streamFunc[T, U any] func(T, int) U
 
-func asTransform[T, U any]() wrapFunc[T] {
-	return func(stream []T) interface{} {
-		return Transform[T, U](stream)
-	}
+func AsTransform[T, U any](stream []T) interface{} {
+	return Transform[T, U](stream)
 }
 
 func (stream Stream[T]) Foreach(callback func(T, int)) {

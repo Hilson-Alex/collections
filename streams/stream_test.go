@@ -84,7 +84,7 @@ func TestTransform_Map(t *testing.T) {
 		Map(func(i int, _ int) int {
 			return i / 10
 		}).
-		Wrap(asTransform[int, string]()).(Transform[int, string]).
+		Wrap(AsTransform[int, string]).(Transform[int, string]).
 		Map(func(i int, _ int) string {
 			return strconv.Itoa(i)
 		})
