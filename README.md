@@ -85,8 +85,8 @@ If you need to change `T` into another type, look [Transform](#streamstransform)
 >       Map(func(i int, _ int) string {
 >           return strconv.Itoa(i)
 >       })
->  // In this example the Wrap was used to perform a type cast, then just a type assert is needed to chain
->  // with the Transform methods.
+>  // In this example the Wrap was used to perform a type cast, then just a type assert is needed to
+>  // chain with the Transform methods.
 > ```
  
 #### Modifying (non-mutating) methods:
