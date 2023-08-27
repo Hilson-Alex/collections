@@ -1,8 +1,8 @@
 package streams
 
 import (
+	"fmt"
 	"reflect"
-	"strconv"
 	"testing"
 )
 
@@ -22,6 +22,130 @@ func TestStream_Foreach(t *testing.T) {
 	}
 }
 
+func TestStream_Some(t *testing.T) {
+	var arr = Stream[string]{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	var condition = arr.Some(func(i string, _ int) bool {
+		return len(i) > 0
+	})
+	if !condition {
+		t.FailNow()
+	}
+	condition = arr.Some(func(i string, _ int) bool {
+		return len(i) == 2
+	})
+	if !condition {
+		t.FailNow()
+	}
+	condition = arr.Some(func(i string, _ int) bool {
+		return i == "baba"
+	})
+	if condition {
+		t.FailNow()
+	}
+}
+
+func TestStream_None(t *testing.T) {
+	var arr = Stream[string]{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	var condition = arr.None(func(i string, _ int) bool {
+		return len(i) > 0
+	})
+	if condition {
+		t.FailNow()
+	}
+	condition = arr.None(func(i string, _ int) bool {
+		return len(i) == 2
+	})
+	if condition {
+		t.FailNow()
+	}
+	condition = arr.None(func(i string, _ int) bool {
+		return i == "baba"
+	})
+	if !condition {
+		t.FailNow()
+	}
+}
+
+func TestStream_Every(t *testing.T) {
+	var arr = Stream[string]{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	var condition = arr.Every(func(i string, _ int) bool {
+		return len(i) > 0
+	})
+	if !condition {
+		t.FailNow()
+	}
+	condition = arr.Every(func(i string, _ int) bool {
+		return len(i) == 4
+	})
+	if condition {
+		t.FailNow()
+	}
+	condition = arr.Every(func(i string, _ int) bool {
+		return i == "baba"
+	})
+	if condition {
+		t.FailNow()
+	}
+}
+
+func TestStream_Reduce(t *testing.T) {
+	var ints = Stream[int]{1, 2, 3, 4, 5, 6}
+	var expected = 1 + 2 + 3 + 4 + 5 + 6
+	var result = ints.Reduce(func(sum, item int, _ int) int {
+		return sum + item
+	})
+	if expected != result {
+		t.Fatalf("expected: %v, received: %v", expected, result)
+	}
+}
+
+func TestStream_Concat(t *testing.T) {
+	var arr Stream[string] = []string{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	arr = arr.Concat("a", "b", "c")
+	if !reflect.DeepEqual(Stream[string]{"a", "b", "c"}, arr[6:]) {
+		t.Fatalf("expecting: [a b c] at the end of the array, received: %v", arr)
+	}
+}
+
+func TestStream_Prepend(t *testing.T) {
+	var a = Stream[string]{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	a.AddAt(0, "eita")
+	fmt.Println(a)
+	var arr Stream[string] = []string{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	arr = arr.Prepend("a", "b", "c")
+	if !reflect.DeepEqual(Stream[string]{"a", "b", "c"}, arr[:3]) {
+		t.Fatalf("expecting: [a b c] at the beggining of the array, received: %v", arr)
+	}
+}
+
+func TestStream_AddAt(t *testing.T) {
+	var arr Stream[string] = []string{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	arr = arr.AddAt(3, "a", "b", "c")
+	if !reflect.DeepEqual(Stream[string]{"a", "b", "c"}, arr[3:6]) {
+		t.Fatalf("expecting: [a b c] at the index 3, 4 and 5, received: %v", arr)
+	}
+}
+
+func TestStream_Set(t *testing.T) {
+	var arr Stream[string] = []string{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
+	arr = arr.With(3, "a")
+	if arr[3] != "a" {
+		t.Fatalf("expecting: a at the index 3 of the array, received: %v", arr[3])
+	}
+}
+
+func TestStream_Map(t *testing.T) {
+	var arr = Stream[int]{1, 2, 3, 4, 5}
+	var expected = Stream[int]{2, 4, 6, 8, 10}
+	var result = arr.
+		Map(func(i, _ int) int {
+			return i * 2
+		})
+	if !reflect.DeepEqual(expected, result) {
+		t.Fatalf("expected: %q, received: %q", expected, result)
+	}
+}
+
 func TestStream_Filter(t *testing.T) {
 	var arr = []int{1, 10, 4, 5, 7, 20, 3}
 	var expected = []int{10, 7, 20}
@@ -33,87 +157,13 @@ func TestStream_Filter(t *testing.T) {
 	}
 }
 
-func TestStream_Every(t *testing.T) {
-	var arr = []string{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
-	var condition = Stream[string](arr).Every(func(i string, _ int) bool {
-		return len(i) > 0
+func TestStream_Sort(t *testing.T) {
+	var ints = Stream[int]{10, 2, 33, 14, 5, 67}
+	var expected = Stream[int]{2, 5, 10, 14, 33, 67}
+	var result = ints.Sort(func(i, j int) bool {
+		return i < j
 	})
-	if !condition {
-		t.FailNow()
-	}
-	condition = Stream[string](arr).Every(func(i string, _ int) bool {
-		return len(i) == 4
-	})
-	if condition {
-		t.FailNow()
-	}
-	condition = Stream[string](arr).Every(func(i string, _ int) bool {
-		return i == "baba"
-	})
-	if condition {
-		t.FailNow()
-	}
-}
-
-func TestStream_Some(t *testing.T) {
-	var arr = []string{"aaaa", "bbbb", "cc", "dd", "eeee", "ffff"}
-	var condition = Stream[string](arr).Some(func(i string, _ int) bool {
-		return len(i) > 0
-	})
-	if !condition {
-		t.FailNow()
-	}
-	condition = Stream[string](arr).Some(func(i string, _ int) bool {
-		return len(i) == 4
-	})
-	if !condition {
-		t.FailNow()
-	}
-	condition = Stream[string](arr).Some(func(i string, _ int) bool {
-		return i == "baba"
-	})
-	if condition {
-		t.FailNow()
-	}
-}
-
-func TestTransform_Map(t *testing.T) {
-	var arr = []int{10, 20, 50, 30, 70, 120}
-	var expected = []string{"1", "2", "5", "3", "7", "12"}
-	var result = Transform[int, int](arr).
-		Map(func(i int, _ int) int {
-			return i / 10
-		}).
-		Wrap(AsTransform[int, string]).(Transform[int, string]).
-		Map(func(i int, _ int) string {
-			return strconv.Itoa(i)
-		})
-	if !reflect.DeepEqual(expected, []string(result)) {
-		t.Fatalf("expected: %q, received: %q", expected, result)
-	}
-}
-
-func TestTransform_FlatMap(t *testing.T) {
-	var arr = [][]int{
-		{10, 20},
-		{50, 30, 70},
-		{120},
-	}
-	var expected = []int{10, 20, 50, 30, 70, 120}
-	var result = Transform[[]int, int](arr).FlatMap(func(ints []int, _ int) []int {
-		return ints
-	})
-	if !reflect.DeepEqual(expected, []int(result)) {
+	if !reflect.DeepEqual(expected, result) {
 		t.Fatalf("expected: %v, received: %v", expected, result)
-	}
-}
-
-func TestTransform_Reduce(t *testing.T) {
-	var arr = []int{1, 10, 4, 5, 7, 20, 3}
-	var sum = Transform[int, int](arr).Reduce(func(acc int, value int, _ int) int {
-		return acc + value
-	}, 0)
-	if sum != 50 {
-		t.Fatalf("expected: %v, received: %v", 50, sum)
 	}
 }
