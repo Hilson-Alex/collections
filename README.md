@@ -145,3 +145,4 @@ streamC = streams.Transform[A, C](arr).
 
 ## License
 
+This project is under the MIT License, for more  info read the [License File](/LICENSE)
